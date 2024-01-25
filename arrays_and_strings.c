@@ -33,6 +33,8 @@ int main() {
   printf("str after: %s\n", str2);
 
   // we can copy string from one buffer to another
+  // remember to allocate enough space for the null character (1 more than
+  // length)
   char *str3 = (char *)malloc(12 * sizeof(char));
   strcpy(str3, str2);  // O(N)
   printf("copied string: %s\n", str3);
