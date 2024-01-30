@@ -1,1 +1,6 @@
 cmake-build-*/
+# ignore no extension files
+*.*
+
+# ignore object files
+*.o
