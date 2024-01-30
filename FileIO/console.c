@@ -13,6 +13,4 @@ int main() {
     fgets(buffer, sizeof(buffer), stdin);
 
     printf("you entered %s", buffer);
-
-
 }
