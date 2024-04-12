@@ -1,0 +1,109 @@
+module FP_add(
+input clk, in_ready,
+input [10:0] a,b,
+output reg [10:0] sum,
+output reg done
+);
+
+wire sign_a,sign_b;
+reg sign_sum,big_sign,small_sign;
+wire [5:0] exp_a,exp_b;
+reg [5:0] exp_sum,big_exp;
+wire [3:0] man_a,man_b;
+reg [3:0] man_sum,big_mant, small_mant;
+reg [4:0] temp_man_big,temp_man_small;
+reg [5:0] temp_man_sum;
+reg [5:0] exp_diff;
+
+assign {sign_a,exp_a,man_a} = a;
+assign {sign_b,exp_b,man_b} = b;
+
+always@(posedge clk)begin
+    if(a==0 && b==0)begin
+        sum=0;
+        done=1'b1;
+    end
+    else if(a==0 && b!=0)begin
+        sum=b;
+        done=1'b1;
+    end
+    else if(a!=0 && b==0)begin
+        sum=a;
+        done=1'b1;
+    end
+    else begin
+        if(in_ready)begin
+            if(exp_a > exp_b)begin
+            big_exp = exp_a;
+            big_sign = sign_a;
+            small_sign = sign_b;
+            big_mant = man_a;
+            small_mant = man_b;
+            exp_diff = exp_a-exp_b;
+            end
+            else if (exp_a==exp_b)begin
+                if(man_a>man_b)begin
+                    big_exp=exp_a;
+                    big_sign=sign_a;
+                    small_sign=sign_b;
+                    big_mant=man_a;
+                    small_mant=man_b;
+                    exp_diff=exp_a-exp_b;
+                end
+                else begin
+                    big_exp=exp_b;
+                    big_sign=sign_b;
+                    small_sign=sign_a;
+                    big_mant=man_b;
+                    small_mant=man_a;
+                    exp_diff=exp_b-exp_a;
+                end
+            end
+            else begin
+                big_exp=exp_b;
+                big_sign=sign_b;
+                small_sign=sign_a;
+                big_mant=man_b;
+                small_mant=man_a;
+                exp_diff=exp_b-exp_a;
+            end
+                temp_man_big={1'b1,big_mant};
+                temp_man_small={1'b1,small_mant}>>exp_diff;
+            if(big_sign==small_sign)begin
+                temp_man_sum=temp_man_big+temp_man_small;
+            end
+            else if(big_sign!=small_sign)begin
+                temp_man_sum=temp_man_big-temp_man_small;
+            end
+            if(temp_man_sum[5]) begin
+                man_sum=temp_man_sum[4:1];
+                exp_sum=big_exp;
+                sign_sum=big_sign;
+                sum={sign_sum,exp_sum,man_sum};
+                done=1'b1;
+            end
+            else if(temp_man_sum[4])begin
+                man_sum=temp_man_sum[3:0];
+                exp_sum=big_exp;
+                sign_sum=big_sign;
+                sum={sign_sum,exp_sum,man_sum};
+                done=1'b1;
+            end
+            else if(temp_man_sum[3])begin
+                man_sum={temp_man_sum[2:0],1'b0};
+                exp_sum=big_exp-1'b1;
+                sign_sum=big_sign;
+                sum={sign_sum,exp_sum,man_sum};
+                done=1'b1;
+            end
+            else if(temp_man_sum[2])begin
+                man_sum={temp_man_sum[1:0],2'b0};
+                exp_sum=big_exp-2'b10;
+                sign_sum=big_sign;
+                sum={sign_sum,exp_sum,man_sum};
+                done=1'b1;
+            end
+        end
+    end
+end
+endmodule
